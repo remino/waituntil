@@ -1,7 +1,7 @@
 #!/bin/sh
-# runat
+# waituntil
 
-runat_main() {
+waituntil_main() {
 	scriptpath="` realpath "$0" `"
 	scriptname="` basename "$scriptpath" `"
 	scriptdir="` dirname "$scriptpath" `"
@@ -12,29 +12,27 @@ runat_main() {
 	while getopts h opt
 	do
 		case $opt in
-			h) runat_usage && return ;;
+			h) waituntil_usage && return ;;
 			*) _invalid_opt ;;
 		esac
 	done
 
 	[ $# -gt 0 ] && shift ` expr $OPTIND - 1 `
 
-	case $# in
-		0) runat_usage && return ;;
-		1) _error "Missing command." && runat_usage && return $e_args ;;
-		*) cmd=process ;;
-	esac
+	[ $# -lt 1 ] && waituntil_usage && return
+
+	cmd="process"
 
 	case "$cmd" in
-		process) "runat_$cmd" "$@" ;;
-		help|usage) runat_usage ;;
+		process) "waituntil_$cmd" "$@" ;;
+		help|usage) waituntil_usage ;;
 		*) _invalid_cmd ;;
 	esac
 
 	return $?
 }
 
-runat_process() {
+waituntil_process() {
 	iso_format="%Y-%m-%d %H:%M:%S"
 
 	_init_date
@@ -56,15 +54,13 @@ runat_process() {
 	else
 		echo "Already past $start_time"
 	fi
-
-	"$@"
 }
 
-runat_usage() {
+waituntil_usage() {
 cat <<USAGE
-Usage: $scriptname [options] start_time command
+Usage: $scriptname [options] start_time
 
-Run specified command at the specified time.
+Wait until a specified time.
 
 Start time must be in ISO 8601 '%Y-%m-%d %H:%M:%S' format.
 
@@ -76,11 +72,11 @@ less precision due to lack of millisecond output.
 
 Examples:
 
-	# Run echo on 2022-07-07 10:00:00 local time:
-	runat '2022-07-07 10:00:00' echo Hi
+	# Wait until 2022-07-07 10:00:00 local time then run echo:
+	waituntil '2022-07-07 10:00:00' && echo Hi
 
-	# Run echo on 2022-07-07 10:00:00 in Tokyo time:
-	TZ=Asia/Tokyo runat '2022-07-07 10:00:00' echo Hi
+	# Wait until 2022-07-07 10:00:00 Tokyo time then run echo:
+	TZ=Asia/Tokyo waituntil '2022-07-07 10:00:00' && echo Hi
 
 Available options:
 
@@ -158,14 +154,14 @@ _init_date() {
 _invalid_cmd() {
 	_error "Invalid command: $cmd"
 	_echo
-	runat_usage
+	waituntil_usage
 	exit $e_args
 }
 
 _invalid_opt() {
 	_error "Invalid option: $opt"
 	_echo
-	runat_usage
+	waituntil_usage
 	exit $e_args
 }
 
@@ -175,4 +171,4 @@ _require_valid_date_format() {
 	_fatal $e_invalid_format "Invalid date format: $input_date"
 }
 
-runat_main "$@"
+waituntil_main "$@"
