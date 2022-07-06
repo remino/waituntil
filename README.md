@@ -16,10 +16,10 @@ less precision due to lack of millisecond output.
 
 Examples:
 
-  # Run echo on 2022-07-07 10:00:00 local time:
+	# Run echo on 2022-07-07 10:00:00 local time:
 	runat '2022-07-07 10:00:00' echo Hi
 
-  # Run echo on 2022-07-07 10:00:00 in Tokyo time:
+	# Run echo on 2022-07-07 10:00:00 in Tokyo time:
 	TZ=Asia/Tokyo runat '2022-07-07 10:00:00' echo Hi
 
 Available options:
