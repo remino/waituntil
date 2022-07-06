@@ -27,3 +27,17 @@ Available options:
 	-h        Show this help screen.
 ```
 
+## Migrating from `runat`
+
+If you're migrating from [`runat`](https://github.com/remino/runat), keep in mind while it runs commands itself like `watch`, `waituntil` works more like `sleep`.
+
+This way, it is easier to chain complex commands after `waituntil` than with `runat`.
+
+Example:
+
+```sh
+waituntil '2022-07-07 10:00:00' && echo Hi
+# is the equivalent of
+runat '2022-07-07 10:00:00' echo Hi
+```
+
