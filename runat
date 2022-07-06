@@ -1,7 +1,5 @@
 #!/bin/sh
-# vim: list: noexpandtab
 # runat
-# 2021-02-21 11:51:30 JST
 
 runat_main() {
 	scriptpath="` realpath "$0" `"
@@ -9,25 +7,23 @@ runat_main() {
 	scriptdir="` dirname "$scriptpath" `"
 
 	e_args=16
+	e_invalid_format=17
 
-	while getopts hz: opt
+	while getopts h opt
 	do
 		case $opt in
 			h) runat_usage && return ;;
-			z) TZ="$OPTARG" ;;
 			*) _invalid_opt ;;
 		esac
 	done
 
 	[ $# -gt 0 ] && shift ` expr $OPTIND - 1 `
 
-	if [ $# -gt 1 ]
-	then
-		cmd="process"
-	else
-		runat_usage
-		return $e_args
-	fi
+	case $# in
+		0) runat_usage && return ;;
+		1) _error "Missing command." && runat_usage && return $e_args ;;
+		*) cmd=process ;;
+	esac
 
 	case "$cmd" in
 		process) "runat_$cmd" "$@" ;;
@@ -39,22 +35,26 @@ runat_main() {
 }
 
 runat_process() {
-	local rundate="$1"
-	local formattsms="%s%3N"
-	local starttimetsms="` export TZ; date -d "$rundate" +"$formattsms" `"
-	local starttimets="` echo "$starttimetsms / 1000" | bc `"
-	local now="` date +"$formattsms" `"
-	local diff="` echo "$starttimetsms - $now" | bc `"
-	local starttime="` date -d "@$starttimets" +'%Y-%m-%d %H:%M:%S %Z' `"
+	iso_format="%Y-%m-%d %H:%M:%S"
+
+	_init_date
+
+	run_date="$1"
+	_require_valid_date_format "$run_date"
+
+	start_time_ts_ms="` _format_date_to_epoch_ms "$run_date" `"
+	now="` _format_now_to_epoch_ms `"
+	diff="` echo "$start_time_ts_ms - $now" | bc `"
+	start_time="` _format_epoch_ms_to_date "$start_time_ts_ms" `"
 	shift
 
 	if [ "$diff" -gt 0 ]
 	then
-		waittime="` echo "scale=3; $diff / 1000" | bc `"
-		echo "Waiting until $starttime ($waittime s)..."
-		sleep "$waittime"
+		wait_time="` echo "scale=3; $diff / 1000" | bc `"
+		echo "Waiting until $start_time ($wait_time s)..."
+		sleep "$wait_time"
 	else
-		echo "Already past $starttime"
+		echo "Already past $start_time"
 	fi
 
 	"$@"
@@ -66,15 +66,35 @@ Usage: $scriptname [options] start_time command
 
 Run specified command at the specified time.
 
+Start time must be in ISO 8601 '%Y-%m-%d %H:%M:%S' format.
+
+Time zone can be set with TZ environment variable.
+
+Will try to locate Homebrew gdate (GNU date) on macOS.
+If not present, will adapt to use BSD date, which has
+less precision due to lack of millisecond output.
+
+Examples:
+
+  # Run echo on 2022-07-07 10:00:00 local time:
+	runat '2022-07-07 10:00:00' echo Hi
+
+  # Run echo on 2022-07-07 10:00:00 in Tokyo time:
+	TZ=Asia/Tokyo runat '2022-07-07 10:00:00' echo Hi
+
 Available options:
 
-	-h        This help screen.
-	-z        Set timezone of the passed time.
-	          Defaults to system's timezone.
-	          Use this instead of setting TZ if you want the
-	          start time to still be displayed in the system's timezone.
+	-h        Show this help screen.
 
 USAGE
+}
+
+_bsd_date() {
+	_date -j 2>/dev/null > /dev/null
+}
+
+_date() {
+	"$date" "$@"
 }
 
 _echo() {
@@ -83,6 +103,56 @@ _echo() {
 
 _error() {
 	_echo "$@" >&2
+}
+
+_fatal() {
+	exit_code=$1
+	shift
+	_error "$@"
+	exit $exit_code
+}
+
+_format_date_to_epoch_ms() {
+	input_date="$1"
+
+	if _bsd_date
+	then
+		_date -j -f "$iso_format" "$input_date" +"%s000"
+	else
+		_date -d "$input_date" +"%s%3N"
+	fi
+}
+
+_format_epoch_ms_to_date() {
+	format="+$iso_format %Z"
+	epoch_ms="$1"
+	epoch_s="` echo "$epoch_ms / 1000" | bc `"
+
+	if _bsd_date
+	then
+		_date -j -f "%s" "$epoch_s" "$format"
+	else
+		_date -d "@$epoch_s" "$format"
+	fi
+}
+
+_format_now_to_epoch_ms() {
+	if _bsd_date
+	then
+		_date +"%s000"
+	else
+		_date +"%s%3N"
+	fi
+}
+
+_gnu_date() {
+	! _bsd_date
+}
+
+_init_date() {
+	gdate="` which gdate `"
+	#[ $? -eq 0 ] && date="$gdate"
+	[ -z "$date" ] && date="` which date `"
 }
 
 _invalid_cmd() {
@@ -97,6 +167,12 @@ _invalid_opt() {
 	_echo
 	runat_usage
 	exit $e_args
+}
+
+_require_valid_date_format() {
+	input_date="$1"
+	echo "$input_date" | grep -E '[0-9]{4}(-[0-9]{2}){2} ([0-9]{2}:){2}[0-9]{2}' 2>&1 > /dev/null && return
+	_fatal $e_invalid_format "Invalid date format: $input_date"
 }
 
 runat_main "$@"
