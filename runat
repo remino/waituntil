@@ -1,0 +1,102 @@
+#!/bin/sh
+# vim: list: noexpandtab
+# runat
+# 2021-02-21 11:51:30 JST
+
+runat_main() {
+	scriptpath="` realpath "$0" `"
+	scriptname="` basename "$scriptpath" `"
+	scriptdir="` dirname "$scriptpath" `"
+
+	e_args=16
+
+	while getopts hz: opt
+	do
+		case $opt in
+			h) runat_usage && return ;;
+			z) TZ="$OPTARG" ;;
+			*) _invalid_opt ;;
+		esac
+	done
+
+	[ $# -gt 0 ] && shift ` expr $OPTIND - 1 `
+
+	if [ $# -gt 1 ]
+	then
+		cmd="process"
+	else
+		runat_usage
+		return $e_args
+	fi
+
+	case "$cmd" in
+		process) "runat_$cmd" "$@" ;;
+		help|usage) runat_usage ;;
+		*) _invalid_cmd ;;
+	esac
+
+	return $?
+}
+
+runat_process() {
+	local rundate="$1"
+	local formattsms="%s%3N"
+	local starttimetsms="` export TZ; date -d "$rundate" +"$formattsms" `"
+	local starttimets="` echo "$starttimetsms / 1000" | bc `"
+	local now="` date +"$formattsms" `"
+	local diff="` echo "$starttimetsms - $now" | bc `"
+	local starttime="` date -d "@$starttimets" +'%Y-%m-%d %H:%M:%S %Z' `"
+	shift
+
+	if [ "$diff" -gt 0 ]
+	then
+		waittime="` echo "scale=3; $diff / 1000" | bc `"
+		echo "Waiting until $starttime ($waittime s)..."
+		sleep "$waittime"
+	else
+		echo "Already past $starttime"
+	fi
+
+	"$@"
+}
+
+runat_usage() {
+cat <<USAGE
+Usage: $scriptname [options] start_time command
+
+Run specified command at the specified time.
+
+Available options:
+
+	-h        This help screen.
+	-z        Set timezone of the passed time.
+	          Defaults to system's timezone.
+	          Use this instead of setting TZ if you want the
+	          start time to still be displayed in the system's timezone.
+
+USAGE
+}
+
+_echo() {
+	echo "$@"
+}
+
+_error() {
+	_echo "$@" >&2
+}
+
+_invalid_cmd() {
+	_error "Invalid command: $cmd"
+	_echo
+	runat_usage
+	exit $e_args
+}
+
+_invalid_opt() {
+	_error "Invalid option: $opt"
+	_echo
+	runat_usage
+	exit $e_args
+}
+
+runat_main "$@"
