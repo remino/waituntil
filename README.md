@@ -4,7 +4,7 @@ waituntil
 ```
 waituntil 0.3.0
 
-Usage: waituntil [-hv] <start_time> [<command> <args>]
+Usage: waituntil [-hv] <start_time> [<command> [<args>]]
 
 Wait until a specified time.
 
@@ -42,7 +42,7 @@ Available options:
 ```
 waituntil 0.3.0
 
-Usage: runat [-hv] <start_time> <command> <args>
+Usage: runat [-hv] <start_time> <command> [<args>]
 
 Wait until a specified time then run <command>.
 

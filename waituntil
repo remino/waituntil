@@ -78,7 +78,7 @@ waituntil_help() {
 cat <<HELP
 $scriptname $VERSION
 
-Usage: $scriptinv [-hv] <start_time> [<command> <args>]
+Usage: $scriptinv [-hv] [-r <secs>] <start_time> [<command> [<args>]]
 
 Wait until a specified time.
 
@@ -116,7 +116,7 @@ waituntil_help_runat() {
 cat <<HELP
 $scriptname $VERSION
 
-Usage: $scriptinv [-hv] <start_time> <command> <args>
+Usage: $scriptinv [-hv] [-r <secs>] <start_time> <command> [<args>]
 
 Wait until a specified time then run <command>.
 
