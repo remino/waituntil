@@ -2,11 +2,16 @@ waituntil
 =========
 
 ```
-Usage: waituntil [options] start_time
+waituntil 0.3.0
+
+Usage: waituntil [-hv] <start_time> [<command> <args>]
 
 Wait until a specified time.
 
-Start time must be in ISO 8601 '%Y-%m-%d %H:%M:%S' format.
+Run <command> at that specified time if one is specified.
+If not, simply exit with code 0.
+
+The <start_time> must be in ISO 8601 '%Y-%m-%d %H:%M:%S' format.
 
 Time zone can be set with TZ environment variable.
 
@@ -22,22 +27,44 @@ Examples:
 	# Wait until 2022-07-07 10:00:00 Tokyo time then run echo:
 	TZ=Asia/Tokyo waituntil '2022-07-07 10:00:00' && echo Hi
 
+	# or
+	TZ=Asia/Tokyo waituntil '2022-07-07 10:00:00' echo Hi
+
 Available options:
 
 	-h        Show this help screen.
+	-v        Show script name and version number.
+
 ```
 
-## Migrating from `runat`
+### Running as _runat_
 
-If you're migrating from [`runat`](https://github.com/remino/runat), keep in mind while it runs commands itself like `watch`, `waituntil` works more like `sleep`.
-
-This way, it is easier to chain complex commands after `waituntil` than with `runat`.
-
-Example:
-
-```sh
-waituntil '2022-07-07 10:00:00' && echo Hi
-# is the equivalent of
-runat '2022-07-07 10:00:00' echo Hi
 ```
+waituntil 0.3.0
 
+Usage: runat [-hv] <start_time> <command> <args>
+
+Wait until a specified time then run <command>.
+
+The <start_time> must be in ISO 8601 '%Y-%m-%d %H:%M:%S' format.
+
+Time zone can be set with TZ environment variable.
+
+Will try to locate Homebrew gdate (GNU date) on macOS.
+If not present, will adapt to use BSD date, which has
+less precision due to lack of millisecond output.
+
+Examples:
+
+	# Wait until 2022-07-07 10:00:00 local time then run echo:
+	runat '2022-07-07 10:00:00' echo Hi
+
+	# Wait until 2022-07-07 10:00:00 Tokyo time then run echo:
+	TZ=Asia/Tokyo runat '2022-07-07 10:00:00' echo Hi
+
+Available options:
+
+	-h        Show this help screen.
+	-v        Show script name and version number.
+
+```
