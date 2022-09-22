@@ -235,7 +235,8 @@ _gnu_date() {
 
 _init_date() {
 	gdate="$( which gdate )"
-	[ $? -eq 0 ] && date="$gdate"
+	result=$?
+	[ $result -eq 0 ] && date="$gdate"
 	[ -z "$date" ] && date="$( which date )"
 }
 
