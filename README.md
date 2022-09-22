@@ -2,7 +2,7 @@ waituntil
 =========
 
 ```
-waituntil 0.4.0
+waituntil 1.0.0
 
 Usage: waituntil [-hv] [-r <ss>] <start_time> [<command> [<args>]]
 
@@ -43,7 +43,7 @@ Available options:
 ### Running as _runat_
 
 ```
-waituntil 0.4.0
+waituntil 1.0.0
 
 Usage: runat [-hv] [-r <ss>] <start_time> <command> [<args>]
 
