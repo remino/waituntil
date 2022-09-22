@@ -61,6 +61,8 @@ waituntil_process() {
 	now="$( _format_now_to_epoch_ms )"
 	[ -z "$now" ] && _fatal $e_invalid_format "Could not convert date to Epoch ms."
 
+	_is_number "$max_add" || _fatal $e_args "Max value must be an integer."
+
 	if [ "$max_add" -eq 0 ]
 	then
 		add_secs=0
