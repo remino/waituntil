@@ -2,9 +2,8 @@
 # waituntil
 
 waituntil_main() {
-	scriptpath="` realpath "$0" `"
-	scriptname="` basename "$scriptpath" `"
-	scriptdir="` dirname "$scriptpath" `"
+	scriptpath="$( realpath "$0" )"
+	scriptname="$( basename "$scriptpath" )"
 
 	e_args=16
 	e_invalid_format=17
@@ -17,7 +16,7 @@ waituntil_main() {
 		esac
 	done
 
-	[ $# -gt 0 ] && shift ` expr $OPTIND - 1 `
+	[ $# -gt 0 ] && shift $(( OPTIND - 1 ))
 
 	[ $# -lt 1 ] && waituntil_usage && return
 
@@ -40,15 +39,15 @@ waituntil_process() {
 	run_date="$1"
 	_require_valid_date_format "$run_date"
 
-	start_time_ts_ms="` _format_date_to_epoch_ms "$run_date" `"
-	now="` _format_now_to_epoch_ms `"
-	diff="` echo "$start_time_ts_ms - $now" | bc `"
-	start_time="` _format_epoch_ms_to_date "$start_time_ts_ms" `"
+	start_time_ts_ms="$( _format_date_to_epoch_ms "$run_date" )"
+	now="$( _format_now_to_epoch_ms )"
+	diff="$( echo "$start_time_ts_ms - $now" | bc )"
+	start_time="$( _format_epoch_ms_to_date "$start_time_ts_ms" )"
 	shift
 
 	if [ "$diff" -gt 0 ]
 	then
-		wait_time="` echo "scale=3; $diff / 1000" | bc `"
+		wait_time="$( echo "scale=3; $diff / 1000" | bc )"
 		echo "Waiting until $start_time ($wait_time s)..."
 		sleep "$wait_time"
 	else
@@ -105,7 +104,7 @@ _fatal() {
 	exit_code=$1
 	shift
 	_error "$@"
-	exit $exit_code
+	exit "$exit_code"
 }
 
 _format_date_to_epoch_ms() {
@@ -122,7 +121,7 @@ _format_date_to_epoch_ms() {
 _format_epoch_ms_to_date() {
 	format="+$iso_format %Z"
 	epoch_ms="$1"
-	epoch_s="` echo "$epoch_ms / 1000" | bc `"
+	epoch_s="$( echo "$epoch_ms / 1000" | bc )"
 
 	if _bsd_date
 	then
@@ -146,9 +145,9 @@ _gnu_date() {
 }
 
 _init_date() {
-	gdate="` which gdate `"
+	gdate="$( which gdate )"
 	[ $? -eq 0 ] && date="$gdate"
-	[ -z "$date" ] && date="` which date `"
+	[ -z "$date" ] && date="$( which date )"
 }
 
 _invalid_cmd() {
@@ -167,7 +166,7 @@ _invalid_opt() {
 
 _require_valid_date_format() {
 	input_date="$1"
-	echo "$input_date" | grep -E '[0-9]{4}(-[0-9]{2}){2} ([0-9]{2}:){2}[0-9]{2}' 2>&1 > /dev/null && return
+	echo "$input_date" | grep -E '[0-9]{4}(-[0-9]{2}){2} ([0-9]{2}:){2}[0-9]{2}' > /dev/null 2>&1 && return
 	_fatal $e_invalid_format "Invalid date format: $input_date"
 }
 
