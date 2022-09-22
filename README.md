@@ -11,7 +11,9 @@ Wait until a specified time.
 Run <command> at that specified time if one is specified.
 If not, simply exit with code 0.
 
-The <start_time> must be in ISO 8601 '%Y-%m-%d %H:%M:%S' format.
+The <start_time> must be in ISO 8601 '%H:%M:%S'
+or '%Y-%m-%d %H:%M:%S' format. When the date is not
+specified, today is used.
 
 Time zone can be set with TZ environment variable.
 
@@ -47,7 +49,9 @@ Usage: runat [-hv] [-r <ss>] <start_time> <command> [<args>]
 
 Wait until a specified time then run <command>.
 
-The <start_time> must be in ISO 8601 '%Y-%m-%d %H:%M:%S' format.
+The <start_time> must be in ISO 8601 '%H:%M:%S'
+or '%Y-%m-%d %H:%M:%S' format. When the date is not
+specified, today is used.
 
 Time zone can be set with TZ environment variable.
 
