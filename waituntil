@@ -1,6 +1,8 @@
 #!/bin/sh
 # waituntil
 
+VERSION='0.1.0'
+
 waituntil_main() {
 	scriptpath="$( realpath "$0" )"
 	scriptname="$( basename "$scriptpath" )"
@@ -8,23 +10,23 @@ waituntil_main() {
 	e_args=16
 	e_invalid_format=17
 
-	while getopts h opt
+	cmd=
+
+	while getopts hv opt
 	do
 		case $opt in
-			h) waituntil_usage && return ;;
+			h) cmd=help ;;
+			v) cmd=version ;;
 			*) _invalid_opt ;;
 		esac
 	done
 
 	[ $# -gt 0 ] && shift $(( OPTIND - 1 ))
 
-	[ $# -lt 1 ] && waituntil_usage && return
-
-	cmd="process"
+	[ -z "$cmd" ] && cmd="process"
 
 	case "$cmd" in
-		process) "waituntil_$cmd" "$@" ;;
-		help|usage) waituntil_usage ;;
+		help|process|version) "waituntil_$cmd" "$@" ;;
 		*) _invalid_cmd ;;
 	esac
 
@@ -32,6 +34,8 @@ waituntil_main() {
 }
 
 waituntil_process() {
+	[ $# -lt 1 ] && waituntil_help && return
+
 	iso_format="%Y-%m-%d %H:%M:%S"
 
 	_init_date
@@ -55,8 +59,10 @@ waituntil_process() {
 	fi
 }
 
-waituntil_usage() {
-cat <<USAGE
+waituntil_help() {
+cat <<HELP
+$scriptname $VERSION
+
 Usage: $scriptname [options] start_time
 
 Wait until a specified time.
@@ -80,8 +86,13 @@ Examples:
 Available options:
 
 	-h        Show this help screen.
+	-v        Show script name and version number.
 
-USAGE
+HELP
+}
+
+waituntil_version() {
+	_echo "$scriptname $VERSION"
 }
 
 _bsd_date() {
@@ -153,14 +164,14 @@ _init_date() {
 _invalid_cmd() {
 	_error "Invalid command: $cmd"
 	_echo
-	waituntil_usage
+	waituntil_help
 	exit $e_args
 }
 
 _invalid_opt() {
 	_error "Invalid option: $opt"
 	_echo
-	waituntil_usage
+	waituntil_help
 	exit $e_args
 }
 
