@@ -1,7 +1,7 @@
 #!/bin/sh
 # waituntil
 
-VERSION='0.3.0'
+VERSION='0.4.0'
 
 waituntil_main() {
 	trap _exit INT TERM
@@ -12,14 +12,18 @@ waituntil_main() {
 
 	e_args=16
 	e_invalid_format=17
+	e_no_random=18
+	e_missing_app=19
 
 	cmd=
 	mode="$scriptinv"
+	max_add=0
 
-	while getopts hv opt
+	while getopts hr:v opt
 	do
 		case $opt in
 			h) cmd=help ;;
+			r) max_add="$OPTARG" ;;
 			v) cmd=version ;;
 			*) _invalid_opt ;;
 		esac
@@ -57,7 +61,19 @@ waituntil_process() {
 	now="$( _format_now_to_epoch_ms )"
 	[ -z "$now" ] && _fatal $e_invalid_format "Could not convert date to Epoch ms."
 
-	diff="$( echo "$start_time_ts_ms - $now" | bc )"
+	if [ "$max_add" -eq 0 ]
+	then
+		add_secs=0
+	else
+		add_secs="$( _rand "$max_add" )"
+		[ -z "$add_secs" ] && _fatal $e_no_random "Could not generate random number."
+	fi
+
+	[ "$add_secs" -gt 0 ] \
+		&& start_time_ts_ms="$(( start_time_ts_ms + add_secs * 1000 ))"
+
+	diff="$(( start_time_ts_ms - now ))"
+
 	start_time="$( _format_epoch_ms_to_date "$start_time_ts_ms" )"
 
 	if [ "$diff" -gt 0 ]
@@ -78,7 +94,7 @@ waituntil_help() {
 cat <<HELP
 $scriptname $VERSION
 
-Usage: $scriptinv [-hv] [-r <secs>] <start_time> [<command> [<args>]]
+Usage: $scriptinv [-hv] [-r <ss>] <start_time> [<command> [<args>]]
 
 Wait until a specified time.
 
@@ -106,8 +122,9 @@ Examples:
 
 Available options:
 
-	-h        Show this help screen.
-	-v        Show script name and version number.
+	-h          Show this help screen.
+	-r <ss>     Add random delay between 0 and <ss> seconds.
+	-v          Show script name and version number.
 
 HELP
 }
@@ -116,7 +133,7 @@ waituntil_help_runat() {
 cat <<HELP
 $scriptname $VERSION
 
-Usage: $scriptinv [-hv] [-r <secs>] <start_time> <command> [<args>]
+Usage: $scriptinv [-hv] [-r <ss>] <start_time> <command> [<args>]
 
 Wait until a specified time then run <command>.
 
@@ -138,8 +155,9 @@ Examples:
 
 Available options:
 
-	-h        Show this help screen.
-	-v        Show script name and version number.
+	-h          Show this help screen.
+	-r <ss>     Add random delay between 0 and <ss> seconds.
+	-v          Show script name and version number.
 
 HELP
 }
@@ -233,8 +251,44 @@ _invalid_opt() {
 	exit $e_args
 }
 
+_is_number() {
+	echo "$1" | grep -Eo '^\d+$' > /dev/null 2>&1
+}
+
 _mode_is_runat() {
 	[ "$mode" = "runat" ]
+}
+
+_rand() {
+	_require head od grep
+
+	max="$1"
+
+	[ -z "$max" ] && _fatal $e_args "Missing max value for random number."
+	_is_number "$max" || _fatal $e_args "Max value must be an integer."
+	[ "$max" -lt 1 ] && _fatal $e_args "Max value must be a 1 or higher."
+
+	seed="$( od /dev/urandom | head -n 1 | grep -Eo '\d+$' )"
+
+	awk "BEGIN { srand($seed); print int(rand() * $max) }"
+}
+
+_require() {
+	missing_bin=0
+
+	for bin in "$@"
+	do
+		if ! which "$bin" > /dev/null 2>&1
+		then
+			missing_bin=1
+			_error "Required: $bin"
+		fi
+	done
+
+	if [ $missing_bin -ne 0 ]
+	then
+		_fatal "$e_missing_app" "One or more executables or apps are missing."
+	fi
 }
 
 _require_valid_date_format() {

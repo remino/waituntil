@@ -2,9 +2,9 @@ waituntil
 =========
 
 ```
-waituntil 0.3.0
+waituntil 0.4.0
 
-Usage: waituntil [-hv] <start_time> [<command> [<args>]]
+Usage: waituntil [-hv] [-r <ss>] <start_time> [<command> [<args>]]
 
 Wait until a specified time.
 
@@ -32,17 +32,18 @@ Examples:
 
 Available options:
 
-	-h        Show this help screen.
-	-v        Show script name and version number.
+	-h          Show this help screen.
+	-r <ss>     Add random delay between 0 and <ss> seconds.
+	-v          Show script name and version number.
 
 ```
 
 ### Running as _runat_
 
 ```
-waituntil 0.3.0
+waituntil 0.4.0
 
-Usage: runat [-hv] <start_time> <command> [<args>]
+Usage: runat [-hv] [-r <ss>] <start_time> <command> [<args>]
 
 Wait until a specified time then run <command>.
 
@@ -64,7 +65,8 @@ Examples:
 
 Available options:
 
-	-h        Show this help screen.
-	-v        Show script name and version number.
+	-h          Show this help screen.
+	-r <ss>     Add random delay between 0 and <ss> seconds.
+	-v          Show script name and version number.
 
 ```
