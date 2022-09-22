@@ -271,6 +271,7 @@ _rand() {
 	_is_number "$max" || _fatal $e_args "Max value must be an integer."
 	[ "$max" -lt 1 ] && _fatal $e_args "Max value must be a 1 or higher."
 
+	max="$(( max + 1 ))"
 	seed="$( od /dev/urandom | head -n 1 | grep -Eo '\d+$' )"
 
 	awk "BEGIN { srand($seed); print int(rand() * $max) }"
